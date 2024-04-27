@@ -6,4 +6,4 @@ jspm_packages
 .serverless
 
 # Environment Files
-env
+env/dev24-ap-south-1.yml

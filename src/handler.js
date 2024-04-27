@@ -1,5 +1,7 @@
 'use strict';
 
+const aws = require("aws-sdk");
+
 
 function response(statusCode, message) {
   return {
