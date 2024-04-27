@@ -11,13 +11,19 @@
 #
 # Happy Coding!
 
-service: employee-scheduler
-# app and org for use with dashboard.serverless.com
-#app: your-app-name
-#org: your-org-name
+service: ${self:custom.dEnvironment}-${self:custom.dRegion}-${self:custom.dFunction}
 
-# You can pin your service to only deploy with a specific Serverless version
-# Check out our docs for more details
+custom:
+  env-props: ${file(./env/${self:custom.dEnvironment}-${self:custom.dRegion}.yml)}
+
+  dFunction: employee-scheduler
+  
+  dEnvironment: ${opt:stage, 'dev24'}
+  
+  dAccountId: ${self:custom.env-props.account-id}
+  
+  dRegion: ${opt:region, 'ap-south-1'}
+
 frameworkVersion: "3"
 
 provider:
@@ -34,6 +40,7 @@ functions:
     package:
       include:
         - src/**
+    environment: ${self:custom.env-props.env-vars}     
     events:
       - http:
           path: /employees

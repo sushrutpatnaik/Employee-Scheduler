@@ -1,0 +1,7 @@
+account-id: xxxxxxxxxxxx  <--Put AWS account ID here
+
+env-vars:
+  APP_ENVIRONMENT: xxxx  <--Put AWS env (like dev, stg, prod,etc)
+  REGION: xxxxxx  <--- Put AWS region (us-east-1,us-west-2, etc)
+  ACCOUNT_ID: xxxxxxxxxxxx  <--Put AWS account ID here
+  EMP_TABLE : xxxxxxxxxxx <----Put name of the AWS DynamoDB table

@@ -1,0 +1,23 @@
+{
+  "name": "employee-scheduler",
+  "version": "1.0.0",
+  "description": "Employee Scheduler Backend APIs",
+  "main": "handler.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sushrutpatnaik/Employee-Scheduler.git"
+  },
+  "author": "Sushrut",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sushrutpatnaik/Employee-Scheduler/issues"
+  },
+  "homepage": "https://github.com/sushrutpatnaik/Employee-Scheduler#readme",
+  "dependencies": {
+    "aws-sdk": "^2.1608.0",
+    "dotenv": "^16.4.5"
+  }
+}
