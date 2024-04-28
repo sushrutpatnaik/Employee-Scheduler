@@ -4,4 +4,5 @@ env-vars:
   APP_ENVIRONMENT: xxxx  <--Put AWS env (like dev, stg, prod,etc)
   REGION: xxxxxx  <--- Put AWS region (us-east-1,us-west-2, etc)
   ACCOUNT_ID: xxxxxxxxxxxx  <--Put AWS account ID here
-  EMP_TABLE : xxxxxxxxxxx <----Put name of the AWS DynamoDB table
+  EMP_TABLE : xxxxxxxxxxx <----Put name of the AWS DynamoDB table for employees with primary key as 'employeeid'
+  SHIFT_TABLE : xxxxxxxxxxx <----Put name of the AWS DynamoDB table for shifts with primary key as 'shiftid'

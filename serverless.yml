@@ -47,3 +47,44 @@ functions:
           method: POST
           cors: true
 
+  updateEmployee:
+    handler: src/handler.updateEmployee
+    package:
+      include:
+        - src/**
+    environment: ${self:custom.env-props.env-vars}     
+    events:
+      - http:
+          path: /employees/{id}
+          method: PUT
+          cors: true
+          request:
+              parameters:
+                paths:
+                  id: true
+
+  createShift:
+    handler: src/handler.createShift
+    package:
+      include:
+        - src/**
+    environment: ${self:custom.env-props.env-vars}     
+    events:
+      - http:
+          path: /shifts
+          method: POST
+          cors: true
+
+
+  getShifts:
+    handler: src/handler.getShifts
+    package:
+      include:
+        - src/**
+    environment: ${self:custom.env-props.env-vars}     
+    events:
+      - http:
+          path: /shifts
+          method: GET
+          cors: true  
+                        
