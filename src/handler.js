@@ -37,7 +37,7 @@ module.exports.addEmployee = async (event,context,callback) => {
 
   const dbService = new DynamoDBService();
 
-  await dbService.getItemCount(params).then(async (getCountResponse) => {
+  await dbService.scanTable(params).then(async (getCountResponse) => {
     console.log("Employee Table Count Response:"+JSON.stringify(getCountResponse));
     itemCount = getCountResponse.Count;
   });
@@ -60,7 +60,7 @@ module.exports.addEmployee = async (event,context,callback) => {
   
   
   await dbService.createRecord(dbparams).then(async (createResponse) => {
-    console.log("Employee Table Service Response:"+JSON.stringify(createResponse));
+    console.log("Add Employee DB Response:"+JSON.stringify(createResponse));
     dbresponse = createResponse;
   });
   callback(null,response(200,dbresponse));
@@ -93,7 +93,7 @@ module.exports.updateEmployee = async (event,context,callback) => {
   
   const dbService = new DynamoDBService();
   await dbService.updateRecord(dbparams).then(async (updateResponse) => {
-    console.log("DynamoDB Service Response:"+JSON.stringify(updateResponse));
+    console.log("Employee Table Update Response:"+JSON.stringify(updateResponse));
     dbresponse = updateResponse;
   });
   callback(null,response(200,dbresponse));
@@ -122,7 +122,7 @@ module.exports.createShift = async (event,context,callback) => {
   
   const dbService = new DynamoDBService();
   await dbService.createRecord(dbparams).then(async (createResponse) => {
-    console.log("Shift Table Service Response:"+JSON.stringify(createResponse));
+    console.log("Create Shift Table Response:"+JSON.stringify(createResponse));
     dbresponse = createResponse;
   });
   callback(null,response(200,dbresponse));
@@ -133,9 +133,27 @@ module.exports.getShifts = async (event,context,callback) => {
  
   let startTime = event.queryStringParameters['start'];
   let endTime = event.queryStringParameters['end'];
-  console.log("Start time is ",startTime);
-  console.log("End time is ",endTime);
-  let dbresponse = startTime;
+  let dbresponse;
+
+  const params = {
+    TableName: shiftTable,
+    FilterExpression: '#start <= :startTime AND #end >= :endTime',
+    ExpressionAttributeNames: {
+      '#start': 'starttime',
+      '#end': 'endtime',
+    },
+    ExpressionAttributeValues: {
+      ':startTime': startTime,
+      ':endTime': endTime
+    }
+  };
+
+  const dbService = new DynamoDBService();
+
+  await dbService.scanTable(params).then(async (getRecordsResponse) => {
+    console.log("Shift Period Table Response:"+JSON.stringify(getRecordsResponse));
+    dbresponse = getRecordsResponse;
+  });
 
   callback(null,response(200,dbresponse));
 };

@@ -33,10 +33,10 @@ class DynamoDBService {
       }
 
 
-      async getItemCount(dbParams){
+      async scanTable(dbParams){
         return new Promise(async (resolve, reject) => {  
-        var dbGetItemCountPromise = dynamodb.scan(dbParams).promise();
-        dbGetItemCountPromise.then(function(data) {
+        var dbScanTablePromise = dynamodb.scan(dbParams).promise();
+        dbScanTablePromise.then(function(data) {
             console.log('Success Response', data);
             resolve(data);
         }).catch(function(error) {
