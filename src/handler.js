@@ -6,7 +6,39 @@ const DynamoDBService = require("./service/DynamoDBService");
 const empTable = process.env.EMP_TABLE;
 const shiftTable = process.env.SHIFT_TABLE;
 
-function response(statusCode, message) {
+
+function availabilityCheck(shift,availability){
+  let shift_start = shift.starttime;
+  let shift_end = shift.endtime;
+  let isAvailable=false;
+  availability.forEach(shift=>{
+    if(shift.starttime<=shift_start && shift.endtime >= shift_end){
+      isAvailable = true
+    }
+  });
+  return isAvailable;
+}
+
+
+function checkIntervalOverlap(start1, end1, start2, end2) {
+  return !(end1 < start2 || end2 < start1);
+}
+
+function checkConflicts(shiftResponse, getEmpResponse){
+
+  let shift_start = shiftResponse.starttime;
+  let shift_end = shiftResponse.endtime;
+  let assignedShifs = getEmpResponse.assignedshifts;
+  assignedShifs.forEach(shift=>{
+    let isOverlap = checkIntervalOverlap(shift_start,shift_end,shift.starttime,shift.endtime);
+    console.log("Overlap is ", isOverlap);
+    return isOverlap;
+  });
+  return false;
+
+}
+
+function apiResponse(statusCode, responseBody) {
   return {
     isBase64Encoded: false,
     statusCode: statusCode,
@@ -15,7 +47,7 @@ function response(statusCode, message) {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Credentials': true
     },
-    body: JSON.stringify(message)
+    body: JSON.stringify(responseBody)
   };
 }
 
@@ -26,6 +58,8 @@ module.exports.addEmployee = async (event,context,callback) => {
   let empDob = empObj.DOB;
   let empDept = empObj.Dept;
   let empRole = empObj.Role;
+  let empSkills = empObj.Skills;
+  let availability = empObj.Availability;
   let dbresponse;
   let itemCount;
 
@@ -54,7 +88,10 @@ module.exports.addEmployee = async (event,context,callback) => {
       empdob: empDob,
       empdept: empDept,
       emprole: empRole,
-      assignedshifts : []
+      empskills: empSkills,
+      assignedshifts : [],
+      availability : availability
+
     }
   };
   
@@ -63,7 +100,7 @@ module.exports.addEmployee = async (event,context,callback) => {
     console.log("Add Employee DB Response:"+JSON.stringify(createResponse));
     dbresponse = createResponse;
   });
-  callback(null,response(200,dbresponse));
+  callback(null,apiResponse(200,dbresponse));
 };
 
 
@@ -96,15 +133,17 @@ module.exports.updateEmployee = async (event,context,callback) => {
     console.log("Employee Table Update Response:"+JSON.stringify(updateResponse));
     dbresponse = updateResponse;
   });
-  callback(null,response(200,dbresponse));
+  callback(null,apiResponse(200,dbresponse));
 };
 
 module.exports.createShift = async (event,context,callback) => {
  
   let shiftObj = JSON.parse(event.body);
 
-  let startTime = shiftObj.StartTime
-  let endTime = shiftObj.EndTime
+  let startTime = shiftObj.StartTime;
+  let endTime = shiftObj.EndTime;
+  let dept = shiftObj.Dept;
+  let skills = shiftObj.Skills;
   let dbresponse;
 
   let shift_id_generate = Date.now().toString();
@@ -116,7 +155,9 @@ module.exports.createShift = async (event,context,callback) => {
     Item : {
       shiftid : shift_id_generate,
       starttime: startTime,
-      endtime: endTime
+      endtime: endTime,
+      dept : dept,
+      skills : skills
     }
   };
   
@@ -125,7 +166,7 @@ module.exports.createShift = async (event,context,callback) => {
     console.log("Create Shift Table Response:"+JSON.stringify(createResponse));
     dbresponse = createResponse;
   });
-  callback(null,response(200,dbresponse));
+  callback(null,apiResponse(200,dbresponse));
 };
 
 
@@ -155,7 +196,7 @@ module.exports.getShifts = async (event,context,callback) => {
     dbresponse = getRecordsResponse;
   });
 
-  callback(null,response(200,dbresponse));
+  callback(null,apiResponse(200,dbresponse));
 };
 
 module.exports.assignShift = async (event,context,callback) => {
@@ -166,9 +207,7 @@ module.exports.assignShift = async (event,context,callback) => {
   let dbresponse;
   let shiftResponse;
   let shiftResponseList = [];
-
-  console.log(employeeId);
-  console.log(shiftId);
+  let getEmpResponse;
 
   const dbService = new DynamoDBService();
 
@@ -184,26 +223,60 @@ module.exports.assignShift = async (event,context,callback) => {
     shiftResponse = getItemResponse.Item;
   });
 
-  shiftResponseList.push(shiftResponse);
+  let shiftSkills = shiftResponse.skills;
 
-  const dbparams = {
-    TableName : empTable,
+  const getEmpParams = {
+    TableName: empTable,
     Key: {
       employeeid: employeeId
-    },
-    UpdateExpression: 'set assignedshifts = list_append(assignedshifts,:shiftResponse)',
-    ExpressionAttributeValues: {
-      ':shiftResponse': shiftResponseList
-    },
-    ReturnValues: 'UPDATED_NEW'
+    }
   };
 
-  await dbService.updateRecord(dbparams).then(async (updateResponse) => {
-    console.log("Employee Shift Update Response:"+JSON.stringify(updateResponse));
-    dbresponse = updateResponse;
+  await dbService.getItem(getEmpParams).then(async (getEmpItemResponse) => {
+    console.log("Employee Details Response:"+JSON.stringify(getEmpItemResponse));
+    getEmpResponse = getEmpItemResponse.Item;
   });
 
-  callback(null,response(200,dbresponse));
+  let empSkills = getEmpResponse.empskills;
+
+  let deptMatch = (getEmpResponse.empdept==shiftResponse.dept);
+  
+  let checkOverlap = checkConflicts(shiftResponse, getEmpResponse);
+  
+  let checkSkillMatch = shiftSkills.every(item => empSkills.includes(item));
+
+  let checkAvailability = availabilityCheck(shiftResponse,getEmpResponse.availability);
+
+  console.log("Availability is ", checkAvailability);
+  console.log("Dept Match ", deptMatch);
+  console.log("No Overlap is ", !checkOverlap);
+  console.log("Skills Match is ", checkSkillMatch);
+
+
+  if(checkSkillMatch && !checkOverlap && deptMatch && checkAvailability){
+    shiftResponseList.push(shiftResponse);
+    const dbparams = {
+      TableName : empTable,
+      Key: {
+        employeeid: employeeId
+      },
+      UpdateExpression: 'set assignedshifts = list_append(assignedshifts,:shiftResponse)',
+      ExpressionAttributeValues: {
+        ':shiftResponse': shiftResponseList
+      },
+      ReturnValues: 'UPDATED_NEW'
+    };
+
+    await dbService.updateRecord(dbparams).then(async (updateResponse) => {
+      console.log("Employee Shift Update Response:"+JSON.stringify(updateResponse));
+      dbresponse = updateResponse;
+    });
+    callback(null,apiResponse(200,dbresponse));
+  }else{
+    callback(null,apiResponse(304,"Not Modified"));
+  }
+
+  
 };
 
 module.exports.getAssignedShifts = async (event,context,callback) => {
@@ -235,5 +308,5 @@ module.exports.getAssignedShifts = async (event,context,callback) => {
   });
   console.log("Filtered ",filteredResponse);
 
-  callback(null,response(200,filteredResponse));
+  callback(null,apiResponse(200,filteredResponse));
 };
