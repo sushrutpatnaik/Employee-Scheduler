@@ -54,7 +54,7 @@ module.exports.addEmployee = async (event,context,callback) => {
       empdob: empDob,
       empdept: empDept,
       emprole: empRole,
-      asignedshifts : []
+      assignedshifts : []
     }
   };
   
@@ -156,4 +156,84 @@ module.exports.getShifts = async (event,context,callback) => {
   });
 
   callback(null,response(200,dbresponse));
+};
+
+module.exports.assignShift = async (event,context,callback) => {
+ 
+  let empObj = JSON.parse(event.body);
+  let employeeId = event.pathParameters['id'];
+  let shiftId = empObj.ShiftId;
+  let dbresponse;
+  let shiftResponse;
+  let shiftResponseList = [];
+
+  console.log(employeeId);
+  console.log(shiftId);
+
+  const dbService = new DynamoDBService();
+
+  const getShiftParams = {
+    TableName: shiftTable,
+    Key: {
+      shiftid: shiftId
+    }
+  };
+
+  await dbService.getItem(getShiftParams).then(async (getItemResponse) => {
+    console.log("Shift Details Response:"+JSON.stringify(getItemResponse));
+    shiftResponse = getItemResponse.Item;
+  });
+
+  shiftResponseList.push(shiftResponse);
+
+  const dbparams = {
+    TableName : empTable,
+    Key: {
+      employeeid: employeeId
+    },
+    UpdateExpression: 'set assignedshifts = list_append(assignedshifts,:shiftResponse)',
+    ExpressionAttributeValues: {
+      ':shiftResponse': shiftResponseList
+    },
+    ReturnValues: 'UPDATED_NEW'
+  };
+
+  await dbService.updateRecord(dbparams).then(async (updateResponse) => {
+    console.log("Employee Shift Update Response:"+JSON.stringify(updateResponse));
+    dbresponse = updateResponse;
+  });
+
+  callback(null,response(200,dbresponse));
+};
+
+module.exports.getAssignedShifts = async (event,context,callback) => {
+  
+  let employeeId = event.pathParameters['id'];
+  let startTime = event.queryStringParameters['start'];
+  let endTime = event.queryStringParameters['end'];
+  let dbresponse;
+  let filteredResponse=[];
+
+  const assignedShiftParams = {
+    TableName: empTable,
+    Key: {
+      employeeid: employeeId
+    }
+  };
+
+  const dbService = new DynamoDBService();
+
+  await dbService.getItem(assignedShiftParams).then(async (getItemResponse) => {
+    console.log("Assigned Shift Details Response:"+JSON.stringify(getItemResponse));
+    dbresponse = getItemResponse.Item.assignedshifts;
+  });
+  
+  filteredResponse = dbresponse.filter(shift => {
+    // let shiftStartTime = new Date(shift.starttime);
+    // let shiftEndTime = new Date(shift.endtime);
+    return shift.starttime >= startTime && shift.endtime <= endTime;
+  });
+  console.log("Filtered ",filteredResponse);
+
+  callback(null,response(200,filteredResponse));
 };

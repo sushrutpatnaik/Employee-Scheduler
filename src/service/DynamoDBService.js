@@ -47,6 +47,21 @@ class DynamoDBService {
        
       });
       }
+
+      async getItem(dbParams){
+        return new Promise(async (resolve, reject) => {  
+        var dbGetItemPromise = dynamodb.get(dbParams).promise();
+        dbGetItemPromise.then(function(data) {
+            console.log('Success Response', data);
+            resolve(data);
+        }).catch(function(error) {
+            console.log("Error:",error);
+            reject(error);
+        });    
+        
+       
+      });
+      }
 }
 
 module.exports = DynamoDBService;

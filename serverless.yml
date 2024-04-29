@@ -87,4 +87,36 @@ functions:
           path: /shifts
           method: GET
           cors: true  
-                        
+
+  assignShift:
+    handler: src/handler.assignShift
+    package:
+      include:
+        - src/**
+    environment: ${self:custom.env-props.env-vars}     
+    events:
+      - http:
+          path: /employees/{id}/assign-shift
+          method: POST
+          cors: true
+          request:
+              parameters:
+                paths:
+                  id: true
+
+
+  getAssignedShifts:
+    handler: src/handler.getAssignedShifts
+    package:
+      include:
+        - src/**
+    environment: ${self:custom.env-props.env-vars}     
+    events:
+      - http:
+          path: /employees/{id}/schedule
+          method: GET
+          cors: true
+          request:
+              parameters:
+                paths:
+                  id: true
