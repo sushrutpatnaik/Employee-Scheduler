@@ -14,7 +14,6 @@ The Backend APIs have been implemented using AWS Lambdas (Serverless Framework).
 
     1.Employee-Table
         
-        - Attributes
         - employeeid (primarykey)
         - assignedshift[]
         - availability[]
