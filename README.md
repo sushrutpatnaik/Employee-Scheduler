@@ -23,13 +23,19 @@ The Backend APIs have been implemented using AWS Lambdas (Serverless Framework).
         - emprole
         - empskills[]
 
+                -availability structure   
+                        { 
+                            starttime : value
+                            endtime   : value            
+                        }
+
     2.Shift-table
 
         - shiftid (primarykey)
         - dept
         - starttime
         - endtime
-        - skills   
+        - skills[]   
 
 
 
