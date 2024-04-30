@@ -2,14 +2,38 @@
 Design and implement core functionalities of a backend system for managing employee schedules in a retail store chain.
 
 The Backend APIs have been implemented using AWS Lambdas (Serverless Framework). The Nodejs Application is hosted on AWS.
-AWS Components used : 
-    1. AWS lambda
-    2. AWS Cloudwatch
-    3. AWS APIGateway
-    4. AWS IAM 
-    5. AWS DynamoDB 
 
-Prerequites : 
+**AWS Components used :**
+        - AWS lambda
+        - AWS Cloudwatch
+        - AWS APIGateway
+        - AWS IAM 
+        - AWS DynamoDB 
+
+**Two DynamoDB Tables:**
+    1.Employee-Table
+        
+        - Attributes
+        - employeeid (primarykey)
+        - assignedshift[]
+        - availability[]
+        - emptdept
+        - empdob
+        - empname
+        - emprole
+        - empskills[]
+
+    2.Shift-table
+
+        - shiftid (primarykey)
+        - dept
+        - starttime
+        - endtime
+        - skills   
+
+
+
+**Prerequites :** 
     1. AWS Account 
     2. Install AWS CLI on the local machine. Setup the aws config for CLI
     3. Install Serverless cli on local machine
@@ -17,7 +41,7 @@ Prerequites :
     3. Update the environment file with the AWS components.(file {stage}-{region}.yml, Rename as per your stage and region)
     4. To deploy from cli type in terminal "sls deploy --region {region} --stage {stage}"
 
- Once sls deploy is complete, you will get the endpoints for each API
+ **Once sls deploy is complete, you will get the endpoints for each API**
     POST - https://{URL}/employees
     PUT - https://{URL}/employees/{id}
     POST - https://{URL}/shifts
@@ -25,9 +49,10 @@ Prerequites :
     POST - https://{URL}/employees/{id}/assign-shift
     GET - https://{URL}/employees/{id}/schedule
 
- Using postman , each of the endpoints can be tested.
+ **Using postman , each of the endpoints can be tested.**
     
-    Payloads and Query Params for each
+ **Payloads and Query Params for each**
+
     Note : All times in request body oor query params are in UTC format
         1. POST - https://{URL}/employees
 
