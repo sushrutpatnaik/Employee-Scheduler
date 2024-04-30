@@ -11,6 +11,7 @@ The Backend APIs have been implemented using AWS Lambdas (Serverless Framework).
         - AWS DynamoDB 
 
 **Two DynamoDB Tables:**
+
     1.Employee-Table
         
         - Attributes
